@@ -16,9 +16,20 @@ def draw_window(gameMap:Map):
     win.fill((30, 30, 30))
 
     gameMap.draw(win)
-    currentPlayer.draw(win, (width/2, height/2))
+
+    for barrier in gameMap.barriers:
+        for i, point in enumerate(barrier.points):
+            pygame.draw.line(win, 'Blue', (barrier.points[i-1][0]-currentPlayer.get_pos()[0]+width/2, -(abs(currentPlayer.get_pos()[1])-abs(barrier.points[i-1][1]+height/2))), (point[0]-currentPlayer.get_pos()[0]+width/2, -(abs(currentPlayer.get_pos()[1])-abs(point[1]+height/2))), 2)
+
+    for point in points:
+        pygame.draw.circle(win, 'Red', (point[0]-currentPlayer.get_pos()[0]+width/2, -(abs(currentPlayer.get_pos()[1])-abs(point[1]+height/2))), 4)
+        print(f'({point[0]},{point[1]})')
+    
+    # Draw players
     for player in enemyPlayers:
         player.draw(win, (player.get_pos()[0]-currentPlayer.get_pos()[0]+width/2, -(abs(currentPlayer.get_pos()[1])-abs(player.get_pos()[1]+height/2))))
+
+    currentPlayer.draw(win, (width/2, height/2))
 
     pygame.display.update()
 
@@ -34,12 +45,14 @@ if __name__ == "__main__":
     cameraXOffset = 0
     cameraYOffset = 0
 
+    points = []
+
     up = False
     down = False
     left = False
     right = False
 
-    gameMap = Map('GUI/Assets/Backgrounds/TheSkeld/TheSkeldMap.png')
+    gameMap = Map('GUI/Assets/Backgrounds/TheSkeld/TheSkeldMap.png', 'GUI/Assets/barriers.txt')
 
     run = True
     while run:
@@ -58,6 +71,9 @@ if __name__ == "__main__":
                     run = False
                     pygame.quit()
                     quit()
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                points.append((pygame.mouse.get_pos()[0]+currentPlayer.get_pos()[0]-width/2, (abs(currentPlayer.get_pos()[1])+abs(pygame.mouse.get_pos()[1]-height/2))))
             
             # Handles resizing of window
             if event.type == pygame.VIDEORESIZE:
@@ -67,16 +83,39 @@ if __name__ == "__main__":
 
         # Handle movement
         keys = pygame.key.get_pressed()  # Check all keys' states
+
         if keys[pygame.K_w]:  # Move up
             currentPlayer.move(yChange=speed)
+            # Check for collision with barriers
+            for barrier in gameMap.barriers:
+                if barrier.is_collided(currentPlayer.leftTop) or barrier.is_collided(currentPlayer.midTop) or barrier.is_collided(currentPlayer.rightTop):
+                    currentPlayer.move(yChange=-speed)
+                    break
+
         if keys[pygame.K_s]:  # Move down
             currentPlayer.move(yChange=-speed)
+            for barrier in gameMap.barriers:
+                if barrier.is_collided(currentPlayer.leftBottom) or barrier.is_collided(currentPlayer.midBottom) or barrier.is_collided(currentPlayer.rightBottom):
+                    currentPlayer.move(yChange=speed)
+                    break
+
         if keys[pygame.K_a]:  # Move left
             currentPlayer.move(xChange=-speed)
             currentPlayer.facingRight = False
+            # Check for collision with barriers
+            for barrier in gameMap.barriers:
+                if barrier.is_collided(currentPlayer.leftTop) or barrier.is_collided(currentPlayer.leftMid) or barrier.is_collided(currentPlayer.leftBottom):
+                    currentPlayer.move(xChange=speed)
+                    break
+
         if keys[pygame.K_d]:  # Move right
             currentPlayer.move(xChange=speed)
             currentPlayer.facingRight = True
+            # Check for collision with barriers
+            for barrier in gameMap.barriers:
+                if barrier.is_collided(currentPlayer.rightTop) or barrier.is_collided(currentPlayer.rightMid) or barrier.is_collided(currentPlayer.rightBottom):
+                    currentPlayer.move(xChange=-speed)
+                    break
 
         gameMap.set_offsets(-currentPlayer.get_pos()[0]-cameraXOffset, currentPlayer.get_pos()[1]+cameraYOffset)
 

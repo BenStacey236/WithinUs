@@ -2,7 +2,7 @@ import pygame
 import os
 
 class Player:
-    def __init__(self, startX: int, startY: int, colour: str | tuple[int], spriteFolder: str):
+    def __init__(self, startX: int, startY: int, colour: str | tuple[int], spriteFolder: str) -> None:
         self.__x = startX
         self.__y = startY
         self.__colour = colour
@@ -17,26 +17,41 @@ class Player:
         self.currentImage = self.baseFrame
 
 
-    def change_colour(self, colour: str | tuple[int]):
+    def change_colour(self, colour: str | tuple[int]) -> None:
         self.__colour = colour
 
 
-    def get_pos(self):
-        return self.__x, self.__y
+    def get_pos(self) -> tuple[int]:
+        return (self.__x, self.__y)
 
 
-    def set_pos(self, x: int, y: int):
+    def set_pos(self, x: int, y: int) -> None:
         self.__x, self.__y = x, y
 
+        self.centre = (self.__x, -self.__y)
+        self.midTop = (self.__x, self.__y-(self.currentImage.get_height()/2))
 
-    def move(self, xChange: int = 0, yChange: int = 0):
+
+    def move(self, xChange: int = 0, yChange: int = 0) -> None:
         self.__x += xChange
         self.__y += yChange
 
+        # Set edge values for collision detection
+        self.leftTop = (self.__x-self.currentImage.get_width()/2, -(self.__y+(self.currentImage.get_height()/2)))
+        self.midTop = (self.__x, -(self.__y+(self.currentImage.get_height()/2)))
+        self.rightTop = (self.__x+self.currentImage.get_width()/2, -(self.__y+(self.currentImage.get_height()/2)))
 
-    def draw(self, surface: pygame.surface, pos: tuple[int]):
+        self.leftMid = (self.__x-self.currentImage.get_width()/2, -self.__y)
+        self.centre = (self.__x, -self.__y)
+        self.rightMid = (self.__x+self.currentImage.get_width()/2, -self.__y)
+
+        self.leftBottom = (self.__x-self.currentImage.get_width()/2, -(self.__y-(self.currentImage.get_height()/2)))
+        self.midBottom = (self.__x, -(self.__y-(self.currentImage.get_height()/2)))
+        self.rightBottom = (self.__x+self.currentImage.get_width()/2, -(self.__y-(self.currentImage.get_height()/2)))
+
+
+    def draw(self, surface: pygame.surface, pos: tuple[int]) -> None:
         if self.facingRight:
             surface.blit(self.currentImage, (pos[0]-self.currentImage.get_width()/2, pos[1]-self.currentImage.get_height()/2))
         else:
             surface.blit(pygame.transform.flip(self.currentImage, True, False), (pos[0]-self.currentImage.get_width()/2, pos[1]-self.currentImage.get_height()/2))
-        #pygame.draw.circle(surface, self.__colour, pos, 10)
