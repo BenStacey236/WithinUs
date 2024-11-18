@@ -15,12 +15,15 @@ class Map:
             with open(barrierFilePath) as barrierFile:
                 lines = barrierFile.readlines()
                 for barrier in lines:
-                    barrierPoints = []
-                    points = barrier.split()
-                    for point in points:
-                        x, y = point.strip('()').split(',')
-                        barrierPoints.append((int(float(x)), int(float(y))))
-                    self.barriers.append(Barrier(barrierPoints))    
+                    if barrier.startswith("#"):
+                        continue
+                    else:
+                        barrierPoints = []
+                        points = barrier.split()
+                        for point in points:
+                            x, y = point.strip('()').split(',')
+                            barrierPoints.append((int(float(x)), int(float(y))))
+                        self.barriers.append(Barrier(barrierPoints))    
         except:
             raise Exception("Error loading barrier file")
 

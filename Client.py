@@ -17,19 +17,21 @@ def draw_window(gameMap:Map):
 
     gameMap.draw(win)
 
+    # Drawing barriers (temporary)
     for barrier in gameMap.barriers:
         for i, point in enumerate(barrier.points):
             pygame.draw.line(win, 'Blue', (barrier.points[i-1][0]-currentPlayer.get_pos()[0]+width/2, -(abs(currentPlayer.get_pos()[1])-abs(barrier.points[i-1][1]+height/2))), (point[0]-currentPlayer.get_pos()[0]+width/2, -(abs(currentPlayer.get_pos()[1])-abs(point[1]+height/2))), 2)
 
-    for point in points:
+    # Drawing mouse clicks (temporary)
+    for i, point in enumerate(points):
         pygame.draw.circle(win, 'Red', (point[0]-currentPlayer.get_pos()[0]+width/2, -(abs(currentPlayer.get_pos()[1])-abs(point[1]+height/2))), 4)
-        print(f'({point[0]},{point[1]})')
+        print(f'{i}: ({point[0]},{point[1]})')
     
     # Draw players
     for player in enemyPlayers:
-        player.draw(win, (player.get_pos()[0]-currentPlayer.get_pos()[0]+width/2, -(abs(currentPlayer.get_pos()[1])-abs(player.get_pos()[1]+height/2))))
+        player.draw(win, (player.get_pos()[0]-currentPlayer.get_pos()[0]+width/2, -(abs(currentPlayer.get_pos()[1])-abs(player.get_pos()[1]+height/2))), 8)
 
-    currentPlayer.draw(win, (width/2, height/2))
+    currentPlayer.draw(win, (width/2, height/2), 8)
 
     pygame.display.update()
 
@@ -72,6 +74,13 @@ if __name__ == "__main__":
                     pygame.quit()
                     quit()
 
+                if event.key == pygame.K_BACKSPACE:
+                    if len(points) != 0:
+                        points.pop(-1)
+
+            if event.type == pygame.KEYUP:
+                currentPlayer.stop()
+
             if event.type == pygame.MOUSEBUTTONDOWN:
                 points.append((pygame.mouse.get_pos()[0]+currentPlayer.get_pos()[0]-width/2, (abs(currentPlayer.get_pos()[1])+abs(pygame.mouse.get_pos()[1]-height/2))))
             
@@ -94,6 +103,7 @@ if __name__ == "__main__":
 
         if keys[pygame.K_s]:  # Move down
             currentPlayer.move(yChange=-speed)
+            # Check for collision with barriers
             for barrier in gameMap.barriers:
                 if barrier.is_collided(currentPlayer.leftBottom) or barrier.is_collided(currentPlayer.midBottom) or barrier.is_collided(currentPlayer.rightBottom):
                     currentPlayer.move(yChange=speed)
