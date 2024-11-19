@@ -12,8 +12,9 @@ class Barrier:
         :param tuple[int] targetPoint: Tuple of integers (x, y).
         :return isCollided: Boolean, True if targetPoint is inside the polygon, False otherwise.
         """
-
+        
         x, y = targetPoint
+        y = -y
         n = len(self.points)
         isCollided = False
 

@@ -1,6 +1,7 @@
 import pygame
 
 from GUI.Map import Map
+from ServerClient import Client
 from Player import Player
 
 pygame.init()
@@ -12,6 +13,28 @@ win = pygame.display.set_mode((width, height), pygame.RESIZABLE)
 pygame.display.set_caption("WithinUs")
 
 
+def calc_map_mouse_pos(mousePos: tuple[int, int]) -> tuple[int, int]:
+    # Calculate the x position of the mouse
+    x = currentPlayer.get_pos()[0] + (mousePos[0] - width/2)
+
+    # Calulate the y position of the mouse
+    y = (currentPlayer.get_pos()[1] - (mousePos[1] - height/2))
+
+    return (x, y)
+
+
+def calc_relative_position(pos: tuple[int, int]) -> tuple[int, int]:
+    if currentPlayer.get_pos()[0] * pos[0] > 0:
+        x = (pos[0] - currentPlayer.get_pos()[0] + width/2)
+    else:
+        x = -(currentPlayer.get_pos()[0] - pos[0] - width/2)
+    
+    # Calulate the y position
+    y = (currentPlayer.get_pos()[1] - pos[1] + height/2)
+
+    return (x, y)
+
+
 def draw_window(gameMap:Map):
     win.fill((30, 30, 30))
 
@@ -20,16 +43,16 @@ def draw_window(gameMap:Map):
     # Drawing barriers (temporary)
     for barrier in gameMap.barriers:
         for i, point in enumerate(barrier.points):
-            pygame.draw.line(win, 'Blue', (barrier.points[i-1][0]-currentPlayer.get_pos()[0]+width/2, -(abs(currentPlayer.get_pos()[1])-abs(barrier.points[i-1][1]+height/2))), (point[0]-currentPlayer.get_pos()[0]+width/2, -(abs(currentPlayer.get_pos()[1])-abs(point[1]+height/2))), 2)
+            pygame.draw.line(win, 'Blue', calc_relative_position(barrier.points[i-1]), calc_relative_position(point), 2)
 
     # Drawing mouse clicks (temporary)
     for i, point in enumerate(points):
-        pygame.draw.circle(win, 'Red', (point[0]-currentPlayer.get_pos()[0]+width/2, -(abs(currentPlayer.get_pos()[1])-abs(point[1]+height/2))), 4)
+        pygame.draw.circle(win, 'Red', calc_relative_position(point), 4)
         print(f'{i}: ({point[0]},{point[1]})')
     
     # Draw players
     for player in enemyPlayers:
-        player.draw(win, (player.get_pos()[0]-currentPlayer.get_pos()[0]+width/2, -(abs(currentPlayer.get_pos()[1])-abs(player.get_pos()[1]+height/2))), 8)
+        player.draw(win, calc_relative_position(player.get_pos()), 8)
 
     currentPlayer.draw(win, (width/2, height/2), 8)
 
@@ -38,9 +61,10 @@ def draw_window(gameMap:Map):
 
 if __name__ == "__main__":
     clock = pygame.time.Clock()
-    currentPlayer = Player(4344, -1008, 'Blue', 'GUI/Assets/CharacterFrames')
+    currentPlayer = Player('Ben', 4344, -1000, 'Blue', 'GUI/Assets/CharacterFrames')
 
-    enemyPlayers = [Player(4344, 1008, 'Red', 'GUI/Assets/CharacterFrames')]
+    serverConnection = Client("10.3.219.94", 5555)
+    enemyPlayers = []
 
     speed = 8
     
@@ -49,12 +73,7 @@ if __name__ == "__main__":
 
     points = []
 
-    up = False
-    down = False
-    left = False
-    right = False
-
-    gameMap = Map('GUI/Assets/Backgrounds/TheSkeld/TheSkeldMap.png', 'GUI/Assets/barriers.txt')
+    gameMap = Map('GUI/Assets/Backgrounds/TheSkeld/TheSkeldMap.png', 'GUI/Assets/theSkeldBarriers.txt')
 
     run = True
     while run:
@@ -82,7 +101,8 @@ if __name__ == "__main__":
                 currentPlayer.stop()
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                points.append((pygame.mouse.get_pos()[0]+currentPlayer.get_pos()[0]-width/2, (abs(currentPlayer.get_pos()[1])+abs(pygame.mouse.get_pos()[1]-height/2))))
+                #print(currentPlayer.get_pos(), calc_map_mouse_pos(pygame.mouse.get_pos()))
+                points.append(calc_map_mouse_pos(pygame.mouse.get_pos()))
             
             # Handles resizing of window
             if event.type == pygame.VIDEORESIZE:
@@ -128,5 +148,8 @@ if __name__ == "__main__":
                     break
 
         gameMap.set_offsets(-currentPlayer.get_pos()[0]-cameraXOffset, currentPlayer.get_pos()[1]+cameraYOffset)
+
+        serverConnection.send_pos(currentPlayer.playerName, currentPlayer.get_pos())
+        enemyPlayers = [Player(enemyName, enemyPos[0], enemyPos[1], 'Red', 'GUI/Assets/CharacterFrames') for enemyName, enemyPos in serverConnection.players.items() if enemyName != currentPlayer.playerName]
 
         draw_window(gameMap)

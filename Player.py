@@ -3,10 +3,12 @@ import os
 from math import floor
 
 class Player:
-    def __init__(self, startX: int, startY: int, colour: str | tuple[int], spriteFolder: str) -> None:
+    def __init__(self, playerName:str, startX: int, startY: int, colour: str | tuple[int], spriteFolder: str) -> None:
         self.__x = startX
         self.__y = startY
         self.__colour = colour
+        self.playerName = playerName
+        
         self.__moving = False
         self.facingRight = True
         
