@@ -61,7 +61,7 @@ class Server:
                 
                 # Send back the locations of all players
                 reply = ""
-                for playerName, (x, y) in self.players.items():
+                for playerName, [(x, y)] in self.players.items():
                     reply += f'{playerName}:({x},{y})|'
 
                 connection.sendall(str.encode(reply))
@@ -74,13 +74,16 @@ class Server:
 
 
     def process_packet(self, data: str):
-        playerName, playerPos = data.split(':')
+        packets = data.split('|')
+        for packet in packets:
+            if packet != '':
+                playerName, playerPos = packet.split(':')
 
-        playerX, playerY = playerPos.strip('()').split(',')
-        playerX = int(float(playerX))
-        playerY = int(float(playerY))
+                playerX, playerY = playerPos.strip('()').split(',')
+                playerX = int(float(playerX))
+                playerY = int(float(playerY))
 
-        self.players[playerName] = (playerX, playerY)
+                self.players[playerName] = [(playerX, playerY)]
 
 
 if __name__ == "__main__":

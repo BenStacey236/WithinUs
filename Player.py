@@ -3,7 +3,7 @@ import os
 from math import floor
 
 class Player:
-    def __init__(self, playerName:str, startX: int, startY: int, colour: str | tuple[int], spriteFolder: str) -> None:
+    def __init__(self, playerName:str, startX: int, startY: int, colour: str | tuple[int, int], spriteFolder: str) -> None:
         self.__x = startX
         self.__y = startY
         self.__colour = colour
@@ -22,19 +22,28 @@ class Player:
         self.currentImage = self.baseFrame
 
 
-    def change_colour(self, colour: str | tuple[int]) -> None:
+    def change_colour(self, colour: str | tuple[int, int]) -> None:
         self.__colour = colour
 
 
-    def get_pos(self) -> tuple[int]:
+    def get_pos(self) -> tuple[int, int]:
         return (self.__x, self.__y)
 
 
-    def set_pos(self, x: int, y: int) -> None:
-        self.__x, self.__y = x, y
+    def set_pos(self, pos: tuple[int, int]) -> None:
+        self.__x, self.__y = pos
 
+        self.leftTop = (self.__x-self.baseFrame.get_width()/2, -(self.__y+(self.baseFrame.get_height()/2)))
+        self.midTop = (self.__x, -(self.__y+(self.baseFrame.get_height()/2)))
+        self.rightTop = (self.__x+self.baseFrame.get_width()/2, -(self.__y+(self.baseFrame.get_height()/2)))
+
+        self.leftMid = (self.__x-self.baseFrame.get_width()/2, -self.__y)
         self.centre = (self.__x, -self.__y)
-        self.midTop = (self.__x, self.__y-(self.currentImage.get_height()/2))
+        self.rightMid = (self.__x+self.baseFrame.get_width()/2, -self.__y)
+
+        self.leftBottom = (self.__x-self.baseFrame.get_width()/2, -(self.__y-(self.baseFrame.get_height()/2)))
+        self.midBottom = (self.__x, -(self.__y-(self.baseFrame.get_height()/2)))
+        self.rightBottom = (self.__x+self.baseFrame.get_width()/2, -(self.__y-(self.baseFrame.get_height()/2)))
 
 
     def move(self, xChange: int = 0, yChange: int = 0) -> None:

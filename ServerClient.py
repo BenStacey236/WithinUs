@@ -1,7 +1,7 @@
 import socket
 
 
-class Client:
+class Client():
     def __init__(self, serverIP: str, port: int) -> None:
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.serverIP = serverIP
@@ -39,7 +39,7 @@ class Client:
     def send_pos(self, playerName:str, pos: tuple[int, int]):
         try:
             x, y = pos
-            self.client.send(str.encode(f'{playerName}:({x},{y})'))
+            self.client.send(str.encode(f'{playerName}:({x},{y})|'))
             
             self.process_packet(self.client.recv(1024).decode('utf-8'))
             print(self.players)

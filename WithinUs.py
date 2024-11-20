@@ -1,4 +1,5 @@
 import pygame
+import threading
 
 from GUI.Map import Map
 from ServerClient import Client
@@ -35,6 +36,17 @@ def calc_relative_position(pos: tuple[int, int]) -> tuple[int, int]:
     return (x, y)
 
 
+def server_loop():
+    """Handles communication with the server."""
+    while True:
+        try:
+            serverConnection.send_pos(currentPlayer.playerName, currentPlayer.get_pos())
+
+        except Exception as e:
+            print("Error communicating with server:", e)
+            break
+
+
 def draw_window(gameMap:Map):
     win.fill((30, 30, 30))
 
@@ -63,9 +75,6 @@ if __name__ == "__main__":
     clock = pygame.time.Clock()
     currentPlayer = Player('Ben', 4344, -1000, 'Blue', 'GUI/Assets/CharacterFrames')
 
-    serverConnection = Client("10.3.219.94", 5555)
-    enemyPlayers = []
-
     speed = 8
     
     cameraXOffset = 0
@@ -74,6 +83,12 @@ if __name__ == "__main__":
     points = []
 
     gameMap = Map('GUI/Assets/Backgrounds/TheSkeld/TheSkeldMap.png', 'GUI/Assets/theSkeldBarriers.txt')
+
+    serverConnection = Client("10.138.134.220", 5555)
+    enemyPlayers = []
+
+    server_loop_thread = threading.Thread(target=server_loop, daemon=True)
+    server_loop_thread.start()
 
     run = True
     while run:
@@ -149,7 +164,10 @@ if __name__ == "__main__":
 
         gameMap.set_offsets(-currentPlayer.get_pos()[0]-cameraXOffset, currentPlayer.get_pos()[1]+cameraYOffset)
 
-        serverConnection.send_pos(currentPlayer.playerName, currentPlayer.get_pos())
-        enemyPlayers = [Player(enemyName, enemyPos[0], enemyPos[1], 'Red', 'GUI/Assets/CharacterFrames') for enemyName, enemyPos in serverConnection.players.items() if enemyName != currentPlayer.playerName]
+        if (len(enemyPlayers) + 1) != len(serverConnection.players.keys()):
+            enemyPlayers = [Player(enemyName, enemyPos[0], enemyPos[1], 'Red', 'GUI/Assets/CharacterFrames') for enemyName, enemyPos in serverConnection.players.items() if enemyName != currentPlayer.playerName]
+        else:
+            for player in enemyPlayers:
+                player.set_pos(serverConnection.players[player.playerName])
 
         draw_window(gameMap)
