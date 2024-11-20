@@ -39,12 +39,12 @@ def calc_relative_position(pos: tuple[int, int]) -> tuple[int, int]:
 def server_loop():
     """Handles communication with the server."""
     while True:
-        try:
-            serverConnection.send_pos(currentPlayer.playerName, currentPlayer.get_pos())
+        #try:
+        serverConnection.send_pos(currentPlayer.playerName, currentPlayer.get_pos(), currentPlayer.facingRight)
 
-        except Exception as e:
+        '''except Exception as e:
             print("Error communicating with server:", e)
-            break
+            break'''
 
 
 def draw_window(gameMap:Map):
@@ -165,9 +165,10 @@ if __name__ == "__main__":
         gameMap.set_offsets(-currentPlayer.get_pos()[0]-cameraXOffset, currentPlayer.get_pos()[1]+cameraYOffset)
 
         if (len(enemyPlayers) + 1) != len(serverConnection.players.keys()):
-            enemyPlayers = [Player(enemyName, enemyPos[0], enemyPos[1], 'Red', 'GUI/Assets/CharacterFrames') for enemyName, enemyPos in serverConnection.players.items() if enemyName != currentPlayer.playerName]
+            enemyPlayers = [Player(enemyName, enemyPos[0], enemyPos[1], 'Red', 'GUI/Assets/CharacterFrames') for enemyName, [enemyPos, _] in serverConnection.players.items() if enemyName != currentPlayer.playerName]
         else:
             for player in enemyPlayers:
-                player.set_pos(serverConnection.players[player.playerName])
+                player.set_pos(serverConnection.players[player.playerName][0])
+                player.facingRight = serverConnection.players[player.playerName][1]
 
         draw_window(gameMap)
