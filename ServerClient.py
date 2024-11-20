@@ -52,7 +52,6 @@ class Client():
             self.client.send(str.encode(f'{playerName}:({x},{y}):{1 if facingRight else 0}:{1 if isMoving else 0}|'))
             
             self.process_packet(self.client.recv(1024).decode('utf-8'))
-            print(self.players)
 
         except socket.error as e:
             print(e)

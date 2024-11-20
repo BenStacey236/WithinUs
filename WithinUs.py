@@ -170,7 +170,7 @@ if __name__ == "__main__":
             for player in enemyPlayers:
                 player.set_pos(serverConnection.players[player.playerName][0])
                 player.facingRight = serverConnection.players[player.playerName][1]
-                if serverConnection.players[player.playerName][1]:
+                if serverConnection.players[player.playerName][2]:
                     player.move()
                 else:
                     player.stop()
