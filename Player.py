@@ -46,6 +46,10 @@ class Player:
         self.rightBottom = (self.__x+self.baseFrame.get_width()/2, -(self.__y-(self.baseFrame.get_height()/2)))
 
 
+    def isMoving(self) -> bool:
+        return self.__moving
+
+
     def move(self, xChange: int = 0, yChange: int = 0) -> None:
         self.__x += xChange
         self.__y += yChange

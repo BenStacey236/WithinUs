@@ -40,7 +40,7 @@ def server_loop():
     """Handles communication with the server."""
     while True:
         #try:
-        serverConnection.send_pos(currentPlayer.playerName, currentPlayer.get_pos(), currentPlayer.facingRight)
+        serverConnection.send_pos(currentPlayer.playerName, currentPlayer.get_pos(), currentPlayer.facingRight, currentPlayer.isMoving())
 
         '''except Exception as e:
             print("Error communicating with server:", e)
@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
     gameMap = Map('GUI/Assets/Backgrounds/TheSkeld/TheSkeldMap.png', 'GUI/Assets/theSkeldBarriers.txt')
 
-    serverConnection = Client("10.138.134.220", 5555)
+    serverConnection = Client("10.3.219.203", 5555)
     enemyPlayers = []
 
     server_loop_thread = threading.Thread(target=server_loop, daemon=True)
@@ -165,10 +165,14 @@ if __name__ == "__main__":
         gameMap.set_offsets(-currentPlayer.get_pos()[0]-cameraXOffset, currentPlayer.get_pos()[1]+cameraYOffset)
 
         if (len(enemyPlayers) + 1) != len(serverConnection.players.keys()):
-            enemyPlayers = [Player(enemyName, enemyPos[0], enemyPos[1], 'Red', 'GUI/Assets/CharacterFrames') for enemyName, [enemyPos, _] in serverConnection.players.items() if enemyName != currentPlayer.playerName]
+            enemyPlayers = [Player(enemyName, enemyPos[0], enemyPos[1], 'Red', 'GUI/Assets/CharacterFrames') for enemyName, [enemyPos, _, _] in serverConnection.players.items() if enemyName != currentPlayer.playerName]
         else:
             for player in enemyPlayers:
                 player.set_pos(serverConnection.players[player.playerName][0])
                 player.facingRight = serverConnection.players[player.playerName][1]
+                if serverConnection.players[player.playerName][1]:
+                    player.move()
+                else:
+                    player.stop()
 
         draw_window(gameMap)
